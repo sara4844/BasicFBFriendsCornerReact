@@ -1,0 +1,19 @@
+{
+  "name": "birthday-wishes-react",
+  "version": "1.0.0",
+  "description": "beta platform will enable anyone to create a birthday wish list, save it and share it with others",
+  "main": "webpack.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sara4844/BirthdayWishesReact.git"
+  },
+  "author": "Sara Leroy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sara4844/BirthdayWishesReact/issues"
+  },
+  "homepage": "https://github.com/sara4844/BirthdayWishesReact#readme"
+}
