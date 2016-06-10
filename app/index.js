@@ -3,7 +3,7 @@
  */
 var React = require("react");
 var ReactDOM = require("react-dom");
+var routes = require("./config/routes");
 
-var BasicFBFriendsCorner = require("./components/BasicFBFriendsCorner");
-ReactDOM.render(<BasicFBFriendsCorner />, document.getElementById('app'));
+ReactDOM.render(routes, document.getElementById('app'));
 
