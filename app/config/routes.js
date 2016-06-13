@@ -11,14 +11,14 @@ var IndexRoute = ReactRouter.IndexRoute;
 
 var Main = require("../components/UserIs");
 var ProfileShow = require("../components/Profile");
-var CreateUser = require("../components/CreateUser");
+var CreateUser = require("../components/createUser/CreateUser");
 var DisplayUser = require("../components/DisplayUser");
 var routes = (
     <Router history={hashHistory}>
         <Route path="/" component={Main}>
             <Route name="Profile" path="Profile/:username" component={ProfileShow}/>
-            <Route name="CreateUser" path="New-user" component={CreateUser}/>
-            <Route name="DisplayUser" path="Display" component={DisplayUser} />
+            <Route name="CreateUser" path="New-user/:username" component={CreateUser}/>
+            <Route name="DisplayUser" path="Display/:username" component={DisplayUser} />
         </Route>
     </Router>
 );

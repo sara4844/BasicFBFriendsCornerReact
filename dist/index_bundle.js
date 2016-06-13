@@ -20385,8 +20385,8 @@
 
 	var Main = __webpack_require__(231);
 	var ProfileShow = __webpack_require__(232);
-	var CreateUser = __webpack_require__(233);
-	var DisplayUser = __webpack_require__(234);
+	var CreateUser = __webpack_require__(242);
+	var DisplayUser = __webpack_require__(245);
 	var routes = React.createElement(
 	    Router,
 	    { history: hashHistory },
@@ -20394,8 +20394,8 @@
 	        Route,
 	        { path: "/", component: Main },
 	        React.createElement(Route, { name: "Profile", path: "Profile/:username", component: ProfileShow }),
-	        React.createElement(Route, { name: "CreateUser", path: "New-user", component: CreateUser }),
-	        React.createElement(Route, { name: "DisplayUser", path: "Display", component: DisplayUser })
+	        React.createElement(Route, { name: "CreateUser", path: "New-user/:username", component: CreateUser }),
+	        React.createElement(Route, { name: "DisplayUser", path: "Display/:username", component: DisplayUser })
 	    )
 	);
 	module.exports = routes;
@@ -26277,7 +26277,12 @@
 	var React = __webpack_require__(2);
 	var Router = __webpack_require__(170);
 	var Link = Router.Link;
+	var AppActions = __webpack_require__(233);
+	var AppStore = __webpack_require__(240);
 
+	function getAppState() {
+	    return {};
+	}
 	var NotFound = React.createClass({
 	    displayName: "NotFound",
 
@@ -26294,11 +26299,14 @@
 	            ),
 	            React.createElement(
 	                Link,
-	                { to: "New-user", className: "primary ui floating link button" },
+	                { to: "New-user/" + this.props.params.username, className: "primary ui floating link button" },
 	                React.createElement("i", { className: "icon user" }),
 	                "Add User?"
 	            )
 	        );
+	    },
+	    _onChange: function _onChange() {
+	        this.setState(getAppState());
 	    }
 	});
 
@@ -26328,26 +26336,928 @@
 	"use strict";
 
 	/**
+	 * Created by Sa on 6/11/2016.
+	 */
+	var AppDispatcher = __webpack_require__(234);
+	var AppConstants = __webpack_require__(239);
+
+	var AppActions = {
+	    addProfile: function addProfile(item) {
+	        AppDispatcher.handleAction({
+	            actionType: AppConstants.ADD_ITEM,
+	            data: item
+	        });
+	    }
+	};
+
+	module.exports = AppActions;
+
+/***/ },
+/* 234 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	/**
+	 * Created by Sa on 6/11/2016.
+	 */
+	var Dispatcher = __webpack_require__(235).Dispatcher;
+	var assign = __webpack_require__(238);
+
+	var AppDispatcher = assign(new Dispatcher(), {
+	    handleAction: function handleAction(action) {
+	        var payload = {
+	            source: "VIEW_ACTION",
+	            action: action
+	        };
+	        this.dispatch(payload);
+	    }
+	});
+
+	module.exports = AppDispatcher;
+
+/***/ },
+/* 235 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	/**
+	 * Copyright (c) 2014-2015, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 */
+
+	module.exports.Dispatcher = __webpack_require__(236);
+
+/***/ },
+/* 236 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright (c) 2014-2015, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule Dispatcher
+	 * 
+	 * @preventMunge
+	 */
+
+	'use strict';
+
+	exports.__esModule = true;
+
+	function _classCallCheck(instance, Constructor) {
+	  if (!(instance instanceof Constructor)) {
+	    throw new TypeError('Cannot call a class as a function');
+	  }
+	}
+
+	var invariant = __webpack_require__(237);
+
+	var _prefix = 'ID_';
+
+	/**
+	 * Dispatcher is used to broadcast payloads to registered callbacks. This is
+	 * different from generic pub-sub systems in two ways:
+	 *
+	 *   1) Callbacks are not subscribed to particular events. Every payload is
+	 *      dispatched to every registered callback.
+	 *   2) Callbacks can be deferred in whole or part until other callbacks have
+	 *      been executed.
+	 *
+	 * For example, consider this hypothetical flight destination form, which
+	 * selects a default city when a country is selected:
+	 *
+	 *   var flightDispatcher = new Dispatcher();
+	 *
+	 *   // Keeps track of which country is selected
+	 *   var CountryStore = {country: null};
+	 *
+	 *   // Keeps track of which city is selected
+	 *   var CityStore = {city: null};
+	 *
+	 *   // Keeps track of the base flight price of the selected city
+	 *   var FlightPriceStore = {price: null}
+	 *
+	 * When a user changes the selected city, we dispatch the payload:
+	 *
+	 *   flightDispatcher.dispatch({
+	 *     actionType: 'city-update',
+	 *     selectedCity: 'paris'
+	 *   });
+	 *
+	 * This payload is digested by `CityStore`:
+	 *
+	 *   flightDispatcher.register(function(payload) {
+	 *     if (payload.actionType === 'city-update') {
+	 *       CityStore.city = payload.selectedCity;
+	 *     }
+	 *   });
+	 *
+	 * When the user selects a country, we dispatch the payload:
+	 *
+	 *   flightDispatcher.dispatch({
+	 *     actionType: 'country-update',
+	 *     selectedCountry: 'australia'
+	 *   });
+	 *
+	 * This payload is digested by both stores:
+	 *
+	 *   CountryStore.dispatchToken = flightDispatcher.register(function(payload) {
+	 *     if (payload.actionType === 'country-update') {
+	 *       CountryStore.country = payload.selectedCountry;
+	 *     }
+	 *   });
+	 *
+	 * When the callback to update `CountryStore` is registered, we save a reference
+	 * to the returned token. Using this token with `waitFor()`, we can guarantee
+	 * that `CountryStore` is updated before the callback that updates `CityStore`
+	 * needs to query its data.
+	 *
+	 *   CityStore.dispatchToken = flightDispatcher.register(function(payload) {
+	 *     if (payload.actionType === 'country-update') {
+	 *       // `CountryStore.country` may not be updated.
+	 *       flightDispatcher.waitFor([CountryStore.dispatchToken]);
+	 *       // `CountryStore.country` is now guaranteed to be updated.
+	 *
+	 *       // Select the default city for the new country
+	 *       CityStore.city = getDefaultCityForCountry(CountryStore.country);
+	 *     }
+	 *   });
+	 *
+	 * The usage of `waitFor()` can be chained, for example:
+	 *
+	 *   FlightPriceStore.dispatchToken =
+	 *     flightDispatcher.register(function(payload) {
+	 *       switch (payload.actionType) {
+	 *         case 'country-update':
+	 *         case 'city-update':
+	 *           flightDispatcher.waitFor([CityStore.dispatchToken]);
+	 *           FlightPriceStore.price =
+	 *             getFlightPriceStore(CountryStore.country, CityStore.city);
+	 *           break;
+	 *     }
+	 *   });
+	 *
+	 * The `country-update` payload will be guaranteed to invoke the stores'
+	 * registered callbacks in order: `CountryStore`, `CityStore`, then
+	 * `FlightPriceStore`.
+	 */
+
+	var Dispatcher = function () {
+	  function Dispatcher() {
+	    _classCallCheck(this, Dispatcher);
+
+	    this._callbacks = {};
+	    this._isDispatching = false;
+	    this._isHandled = {};
+	    this._isPending = {};
+	    this._lastID = 1;
+	  }
+
+	  /**
+	   * Registers a callback to be invoked with every dispatched payload. Returns
+	   * a token that can be used with `waitFor()`.
+	   */
+
+	  Dispatcher.prototype.register = function register(callback) {
+	    var id = _prefix + this._lastID++;
+	    this._callbacks[id] = callback;
+	    return id;
+	  };
+
+	  /**
+	   * Removes a callback based on its token.
+	   */
+
+	  Dispatcher.prototype.unregister = function unregister(id) {
+	    !this._callbacks[id] ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Dispatcher.unregister(...): `%s` does not map to a registered callback.', id) : invariant(false) : undefined;
+	    delete this._callbacks[id];
+	  };
+
+	  /**
+	   * Waits for the callbacks specified to be invoked before continuing execution
+	   * of the current callback. This method should only be used by a callback in
+	   * response to a dispatched payload.
+	   */
+
+	  Dispatcher.prototype.waitFor = function waitFor(ids) {
+	    !this._isDispatching ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Dispatcher.waitFor(...): Must be invoked while dispatching.') : invariant(false) : undefined;
+	    for (var ii = 0; ii < ids.length; ii++) {
+	      var id = ids[ii];
+	      if (this._isPending[id]) {
+	        !this._isHandled[id] ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Dispatcher.waitFor(...): Circular dependency detected while ' + 'waiting for `%s`.', id) : invariant(false) : undefined;
+	        continue;
+	      }
+	      !this._callbacks[id] ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Dispatcher.waitFor(...): `%s` does not map to a registered callback.', id) : invariant(false) : undefined;
+	      this._invokeCallback(id);
+	    }
+	  };
+
+	  /**
+	   * Dispatches a payload to all registered callbacks.
+	   */
+
+	  Dispatcher.prototype.dispatch = function dispatch(payload) {
+	    !!this._isDispatching ? process.env.NODE_ENV !== 'production' ? invariant(false, 'Dispatch.dispatch(...): Cannot dispatch in the middle of a dispatch.') : invariant(false) : undefined;
+	    this._startDispatching(payload);
+	    try {
+	      for (var id in this._callbacks) {
+	        if (this._isPending[id]) {
+	          continue;
+	        }
+	        this._invokeCallback(id);
+	      }
+	    } finally {
+	      this._stopDispatching();
+	    }
+	  };
+
+	  /**
+	   * Is this Dispatcher currently dispatching.
+	   */
+
+	  Dispatcher.prototype.isDispatching = function isDispatching() {
+	    return this._isDispatching;
+	  };
+
+	  /**
+	   * Call the callback stored with the given id. Also do some internal
+	   * bookkeeping.
+	   *
+	   * @internal
+	   */
+
+	  Dispatcher.prototype._invokeCallback = function _invokeCallback(id) {
+	    this._isPending[id] = true;
+	    this._callbacks[id](this._pendingPayload);
+	    this._isHandled[id] = true;
+	  };
+
+	  /**
+	   * Set up bookkeeping needed when dispatching.
+	   *
+	   * @internal
+	   */
+
+	  Dispatcher.prototype._startDispatching = function _startDispatching(payload) {
+	    for (var id in this._callbacks) {
+	      this._isPending[id] = false;
+	      this._isHandled[id] = false;
+	    }
+	    this._pendingPayload = payload;
+	    this._isDispatching = true;
+	  };
+
+	  /**
+	   * Clear bookkeeping used for dispatching.
+	   *
+	   * @internal
+	   */
+
+	  Dispatcher.prototype._stopDispatching = function _stopDispatching() {
+	    delete this._pendingPayload;
+	    this._isDispatching = false;
+	  };
+
+	  return Dispatcher;
+	}();
+
+	module.exports = Dispatcher;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
+
+/***/ },
+/* 237 */
+/***/ function(module, exports, __webpack_require__) {
+
+	/* WEBPACK VAR INJECTION */(function(process) {/**
+	 * Copyright 2013-2015, Facebook, Inc.
+	 * All rights reserved.
+	 *
+	 * This source code is licensed under the BSD-style license found in the
+	 * LICENSE file in the root directory of this source tree. An additional grant
+	 * of patent rights can be found in the PATENTS file in the same directory.
+	 *
+	 * @providesModule invariant
+	 */
+
+	"use strict";
+
+	/**
+	 * Use invariant() to assert state which your program assumes to be true.
+	 *
+	 * Provide sprintf-style format (only %s is supported) and arguments
+	 * to provide information about what broke and what you were
+	 * expecting.
+	 *
+	 * The invariant message will be stripped in production, but the invariant
+	 * will remain to ensure logic does not differ in production.
+	 */
+
+	var invariant = function invariant(condition, format, a, b, c, d, e, f) {
+	  if (process.env.NODE_ENV !== 'production') {
+	    if (format === undefined) {
+	      throw new Error('invariant requires an error message argument');
+	    }
+	  }
+
+	  if (!condition) {
+	    var error;
+	    if (format === undefined) {
+	      error = new Error('Minified exception occurred; use the non-minified dev environment ' + 'for the full error message and additional helpful warnings.');
+	    } else {
+	      var args = [a, b, c, d, e, f];
+	      var argIndex = 0;
+	      error = new Error('Invariant Violation: ' + format.replace(/%s/g, function () {
+	        return args[argIndex++];
+	      }));
+	    }
+
+	    error.framesToPop = 1; // we don't care about invariant's own frame
+	    throw error;
+	  }
+	};
+
+	module.exports = invariant;
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
+
+/***/ },
+/* 238 */
+/***/ function(module, exports) {
+
+	'use strict';
+	/* eslint-disable no-unused-vars */
+
+	var hasOwnProperty = Object.prototype.hasOwnProperty;
+	var propIsEnumerable = Object.prototype.propertyIsEnumerable;
+
+	function toObject(val) {
+		if (val === null || val === undefined) {
+			throw new TypeError('Object.assign cannot be called with null or undefined');
+		}
+
+		return Object(val);
+	}
+
+	function shouldUseNative() {
+		try {
+			if (!Object.assign) {
+				return false;
+			}
+
+			// Detect buggy property enumeration order in older V8 versions.
+
+			// https://bugs.chromium.org/p/v8/issues/detail?id=4118
+			var test1 = new String('abc'); // eslint-disable-line
+			test1[5] = 'de';
+			if (Object.getOwnPropertyNames(test1)[0] === '5') {
+				return false;
+			}
+
+			// https://bugs.chromium.org/p/v8/issues/detail?id=3056
+			var test2 = {};
+			for (var i = 0; i < 10; i++) {
+				test2['_' + String.fromCharCode(i)] = i;
+			}
+			var order2 = Object.getOwnPropertyNames(test2).map(function (n) {
+				return test2[n];
+			});
+			if (order2.join('') !== '0123456789') {
+				return false;
+			}
+
+			// https://bugs.chromium.org/p/v8/issues/detail?id=3056
+			var test3 = {};
+			'abcdefghijklmnopqrst'.split('').forEach(function (letter) {
+				test3[letter] = letter;
+			});
+			if (Object.keys(Object.assign({}, test3)).join('') !== 'abcdefghijklmnopqrst') {
+				return false;
+			}
+
+			return true;
+		} catch (e) {
+			// We don't expect any of the above to throw, but better to be safe.
+			return false;
+		}
+	}
+
+	module.exports = shouldUseNative() ? Object.assign : function (target, source) {
+		var from;
+		var to = toObject(target);
+		var symbols;
+
+		for (var s = 1; s < arguments.length; s++) {
+			from = Object(arguments[s]);
+
+			for (var key in from) {
+				if (hasOwnProperty.call(from, key)) {
+					to[key] = from[key];
+				}
+			}
+
+			if (Object.getOwnPropertySymbols) {
+				symbols = Object.getOwnPropertySymbols(from);
+				for (var i = 0; i < symbols.length; i++) {
+					if (propIsEnumerable.call(from, symbols[i])) {
+						to[symbols[i]] = from[symbols[i]];
+					}
+				}
+			}
+		}
+
+		return to;
+	};
+
+/***/ },
+/* 239 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	/**
+	 * Created by Sa on 6/11/2016.
+	 */
+	module.exports = {
+	  ADD_ITEM: "ADD_ITEM"
+	};
+
+/***/ },
+/* 240 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	/**
+	 * Created by Sa on 6/11/2016.
+	 */
+	var AppDispatcher = __webpack_require__(234);
+	var AppConstants = __webpack_require__(239);
+	var EventEmitter = __webpack_require__(241).EventEmitter;
+	var assign = __webpack_require__(238);
+
+	//Internal object of profiles
+	// {usernameK => [obj1, obj2, obj3, ...],
+	//  usernameL => [obj1, obj2, ...],
+	//  ...}
+	var _profiles = new Map();
+	var addProfile = function addProfile(item) {
+	    var key = "";
+	    //lookup the username in item. Item will always have only one key
+	    for (var i in item) {
+	        key = i;
+	    }
+	    //if there is already a user with that username, append new user to the list of associated profiles
+	    if (_profiles.get(key)) {
+	        _profiles[key].concat([item[key]]);
+	    } else {
+	        _profiles.set(key, [item[key]]);
+	    }
+	};
+
+	//Merge the store with Node's Event Emitter
+	var ProfileBookStore = assign({}, EventEmitter.prototype, {
+
+	    //getter returns profiles
+	    getProfiles: function getProfiles(user) {
+	        return _profiles.get(user);
+	    },
+
+	    emitChange: function emitChange() {
+	        this.emit("change");
+	    },
+
+	    addChangeListener: function addChangeListener(callback) {
+	        this.on('change', callback);
+	    },
+
+	    removeChangeListener: function removeChangeListener(callback) {
+	        this.removeChangeListener('change', callback);
+	    }
+	});
+
+	// Register dispatcher callback
+	AppDispatcher.register(function (payload) {
+	    var action = payload.action;
+
+	    // Define what to do for certain actions
+	    switch (action.actionType) {
+	        //case ShoeConstants.LOAD_SHOES:
+	        //loadShoes(action.data);
+	        //break;
+	        case AppConstants.ADD_ITEM:
+	            addProfile(action.data);
+	            break;
+	        default:
+	            return true;
+
+	    }
+	    // If action was acted upon, emit change event
+	    ProfileBookStore.emitChange();
+
+	    return true;
+	});
+
+	module.exports = ProfileBookStore;
+
+/***/ },
+/* 241 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+
+	// Copyright Joyent, Inc. and other Node contributors.
+	//
+	// Permission is hereby granted, free of charge, to any person obtaining a
+	// copy of this software and associated documentation files (the
+	// "Software"), to deal in the Software without restriction, including
+	// without limitation the rights to use, copy, modify, merge, publish,
+	// distribute, sublicense, and/or sell copies of the Software, and to permit
+	// persons to whom the Software is furnished to do so, subject to the
+	// following conditions:
+	//
+	// The above copyright notice and this permission notice shall be included
+	// in all copies or substantial portions of the Software.
+	//
+	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+	// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+	// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+	// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+	// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+	// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+	// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+	function EventEmitter() {
+	  this._events = this._events || {};
+	  this._maxListeners = this._maxListeners || undefined;
+	}
+	module.exports = EventEmitter;
+
+	// Backwards-compat with node 0.10.x
+	EventEmitter.EventEmitter = EventEmitter;
+
+	EventEmitter.prototype._events = undefined;
+	EventEmitter.prototype._maxListeners = undefined;
+
+	// By default EventEmitters will print a warning if more than 10 listeners are
+	// added to it. This is a useful default which helps finding memory leaks.
+	EventEmitter.defaultMaxListeners = 10;
+
+	// Obviously not all Emitters should be limited to 10. This function allows
+	// that to be increased. Set to zero for unlimited.
+	EventEmitter.prototype.setMaxListeners = function (n) {
+	  if (!isNumber(n) || n < 0 || isNaN(n)) throw TypeError('n must be a positive number');
+	  this._maxListeners = n;
+	  return this;
+	};
+
+	EventEmitter.prototype.emit = function (type) {
+	  var er, handler, len, args, i, listeners;
+
+	  if (!this._events) this._events = {};
+
+	  // If there is no 'error' event listener then throw.
+	  if (type === 'error') {
+	    if (!this._events.error || isObject(this._events.error) && !this._events.error.length) {
+	      er = arguments[1];
+	      if (er instanceof Error) {
+	        throw er; // Unhandled 'error' event
+	      }
+	      throw TypeError('Uncaught, unspecified "error" event.');
+	    }
+	  }
+
+	  handler = this._events[type];
+
+	  if (isUndefined(handler)) return false;
+
+	  if (isFunction(handler)) {
+	    switch (arguments.length) {
+	      // fast cases
+	      case 1:
+	        handler.call(this);
+	        break;
+	      case 2:
+	        handler.call(this, arguments[1]);
+	        break;
+	      case 3:
+	        handler.call(this, arguments[1], arguments[2]);
+	        break;
+	      // slower
+	      default:
+	        args = Array.prototype.slice.call(arguments, 1);
+	        handler.apply(this, args);
+	    }
+	  } else if (isObject(handler)) {
+	    args = Array.prototype.slice.call(arguments, 1);
+	    listeners = handler.slice();
+	    len = listeners.length;
+	    for (i = 0; i < len; i++) {
+	      listeners[i].apply(this, args);
+	    }
+	  }
+
+	  return true;
+	};
+
+	EventEmitter.prototype.addListener = function (type, listener) {
+	  var m;
+
+	  if (!isFunction(listener)) throw TypeError('listener must be a function');
+
+	  if (!this._events) this._events = {};
+
+	  // To avoid recursion in the case that type === "newListener"! Before
+	  // adding it to the listeners, first emit "newListener".
+	  if (this._events.newListener) this.emit('newListener', type, isFunction(listener.listener) ? listener.listener : listener);
+
+	  if (!this._events[type])
+	    // Optimize the case of one listener. Don't need the extra array object.
+	    this._events[type] = listener;else if (isObject(this._events[type]))
+	    // If we've already got an array, just append.
+	    this._events[type].push(listener);else
+	    // Adding the second element, need to change to array.
+	    this._events[type] = [this._events[type], listener];
+
+	  // Check for listener leak
+	  if (isObject(this._events[type]) && !this._events[type].warned) {
+	    if (!isUndefined(this._maxListeners)) {
+	      m = this._maxListeners;
+	    } else {
+	      m = EventEmitter.defaultMaxListeners;
+	    }
+
+	    if (m && m > 0 && this._events[type].length > m) {
+	      this._events[type].warned = true;
+	      console.error('(node) warning: possible EventEmitter memory ' + 'leak detected. %d listeners added. ' + 'Use emitter.setMaxListeners() to increase limit.', this._events[type].length);
+	      if (typeof console.trace === 'function') {
+	        // not supported in IE 10
+	        console.trace();
+	      }
+	    }
+	  }
+
+	  return this;
+	};
+
+	EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+	EventEmitter.prototype.once = function (type, listener) {
+	  if (!isFunction(listener)) throw TypeError('listener must be a function');
+
+	  var fired = false;
+
+	  function g() {
+	    this.removeListener(type, g);
+
+	    if (!fired) {
+	      fired = true;
+	      listener.apply(this, arguments);
+	    }
+	  }
+
+	  g.listener = listener;
+	  this.on(type, g);
+
+	  return this;
+	};
+
+	// emits a 'removeListener' event iff the listener was removed
+	EventEmitter.prototype.removeListener = function (type, listener) {
+	  var list, position, length, i;
+
+	  if (!isFunction(listener)) throw TypeError('listener must be a function');
+
+	  if (!this._events || !this._events[type]) return this;
+
+	  list = this._events[type];
+	  length = list.length;
+	  position = -1;
+
+	  if (list === listener || isFunction(list.listener) && list.listener === listener) {
+	    delete this._events[type];
+	    if (this._events.removeListener) this.emit('removeListener', type, listener);
+	  } else if (isObject(list)) {
+	    for (i = length; i-- > 0;) {
+	      if (list[i] === listener || list[i].listener && list[i].listener === listener) {
+	        position = i;
+	        break;
+	      }
+	    }
+
+	    if (position < 0) return this;
+
+	    if (list.length === 1) {
+	      list.length = 0;
+	      delete this._events[type];
+	    } else {
+	      list.splice(position, 1);
+	    }
+
+	    if (this._events.removeListener) this.emit('removeListener', type, listener);
+	  }
+
+	  return this;
+	};
+
+	EventEmitter.prototype.removeAllListeners = function (type) {
+	  var key, listeners;
+
+	  if (!this._events) return this;
+
+	  // not listening for removeListener, no need to emit
+	  if (!this._events.removeListener) {
+	    if (arguments.length === 0) this._events = {};else if (this._events[type]) delete this._events[type];
+	    return this;
+	  }
+
+	  // emit removeListener for all listeners on all events
+	  if (arguments.length === 0) {
+	    for (key in this._events) {
+	      if (key === 'removeListener') continue;
+	      this.removeAllListeners(key);
+	    }
+	    this.removeAllListeners('removeListener');
+	    this._events = {};
+	    return this;
+	  }
+
+	  listeners = this._events[type];
+
+	  if (isFunction(listeners)) {
+	    this.removeListener(type, listeners);
+	  } else if (listeners) {
+	    // LIFO order
+	    while (listeners.length) {
+	      this.removeListener(type, listeners[listeners.length - 1]);
+	    }
+	  }
+	  delete this._events[type];
+
+	  return this;
+	};
+
+	EventEmitter.prototype.listeners = function (type) {
+	  var ret;
+	  if (!this._events || !this._events[type]) ret = [];else if (isFunction(this._events[type])) ret = [this._events[type]];else ret = this._events[type].slice();
+	  return ret;
+	};
+
+	EventEmitter.prototype.listenerCount = function (type) {
+	  if (this._events) {
+	    var evlistener = this._events[type];
+
+	    if (isFunction(evlistener)) return 1;else if (evlistener) return evlistener.length;
+	  }
+	  return 0;
+	};
+
+	EventEmitter.listenerCount = function (emitter, type) {
+	  return emitter.listenerCount(type);
+	};
+
+	function isFunction(arg) {
+	  return typeof arg === 'function';
+	}
+
+	function isNumber(arg) {
+	  return typeof arg === 'number';
+	}
+
+	function isObject(arg) {
+	  return (typeof arg === 'undefined' ? 'undefined' : _typeof(arg)) === 'object' && arg !== null;
+	}
+
+	function isUndefined(arg) {
+	  return arg === void 0;
+	}
+
+/***/ },
+/* 242 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	/**
 	 * Created by Sa on 6/9/2016.
 	 */
 	var React = __webpack_require__(2);
 	var Router = __webpack_require__(170);
 	var Link = Router.Link;
 
+	var AppActions = __webpack_require__(233);
+	var AppStore = __webpack_require__(240);
+	var AddFriends = __webpack_require__(243);
+
 	var CreateUser = React.createClass({
 	    displayName: "CreateUser",
 
+	    getInitialState: function getInitialState() {
+	        return {
+	            pic: "",
+	            textAge: "",
+	            friends: []
+	        };
+	    },
+	    updateInput: function updateInput(e) {
+	        this.setState({
+	            textAge: e.target.value
+	        });
+	    },
+	    handlePic: function handlePic(e) {
+	        this.setState({
+	            pic: e.target.value
+	        });
+	    },
+	    addNew: function addNew(friend) {
+	        this.setState({
+	            friends: this.state.friends.concat([friend])
+	        });
+	    },
+	    sendData: function sendData() {},
+	    componentWillUnmount: function componentWillUnmount() {
+	        var user = {};
+	        user["age"] = this.state.textAge;
+	        user["pic"] = this.state.pic;
+	        user["friends"] = this.state.friends;
+
+	        var obj = {};
+	        obj[this.props.params.username] = user;
+	        AppActions.addProfile(obj);
+	        this.setState({
+	            pic: "",
+	            textAge: "",
+	            friends: []
+	        });
+	    },
 	    render: function render() {
 	        return React.createElement(
 	            "div",
 	            { className: "ui secondary teal fluid segment" },
-	            React.createElement(Age, null),
-	            React.createElement(Picture, null),
-	            React.createElement(AddFriends, null),
+	            React.createElement(
+	                "label",
+	                null,
+	                "Include Age"
+	            ),
+	            React.createElement(
+	                "div",
+	                { className: "ui right labeled input" },
+	                React.createElement("input", { type: "number", value: this.state.textAge, onChange: this.updateInput, placeholder: "Enter age" })
+	            ),
+	            React.createElement("div", { className: "ui horizontal divider" }),
+	            React.createElement(
+	                "div",
+	                { "class": "inline fields" },
+	                React.createElement(
+	                    "label",
+	                    null,
+	                    "Dogs vs Cats! Take your pick"
+	                ),
+	                React.createElement(
+	                    "div",
+	                    { "class": "field" },
+	                    React.createElement(
+	                        "div",
+	                        { "class": "ui radio checkbox" },
+	                        React.createElement("input", { type: "radio", name: "pic", onChange: this.updateInput, value: this.state.pic }),
+	                        React.createElement(
+	                            "label",
+	                            null,
+	                            "Cats"
+	                        )
+	                    )
+	                ),
+	                React.createElement(
+	                    "div",
+	                    { "class": "field" },
+	                    React.createElement(
+	                        "div",
+	                        { "class": "ui radio checkbox" },
+	                        React.createElement("input", { type: "radio", name: "pic", onChange: this.updateInput, value: this.state.pic }),
+	                        React.createElement(
+	                            "label",
+	                            null,
+	                            "Dogs"
+	                        )
+	                    )
+	                )
+	            ),
+	            React.createElement("div", { className: "ui horizontal divider" }),
+	            React.createElement(AddFriends, { add: this.addNew }),
 	            React.createElement("div", { className: "ui horizontal divider" }),
 	            React.createElement(
 	                Link,
-	                { to: "Display",
+	                { to: "Display/" + this.props.params.username,
 	                    className: "ui center aligned blue floating link button" },
 	                React.createElement("i", { className: "add user icon" }),
 	                "Create User"
@@ -26359,7 +27269,93 @@
 	module.exports = CreateUser;
 
 /***/ },
-/* 234 */
+/* 243 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	/**
+	 * Created by Sa on 6/11/2016.
+	 */
+	var React = __webpack_require__(2);
+	var Showlist = __webpack_require__(244);
+
+	var AddFriends = React.createClass({
+	    displayName: "AddFriends",
+
+	    getInitialState: function getInitialState() {
+	        return {
+	            text: "",
+	            friends: []
+	        };
+	    },
+	    updateInput: function updateInput(e) {
+	        this.setState({
+	            text: e.target.value
+	        });
+	    },
+	    addNewFriend: function addNewFriend() {
+	        this.props.add(this.state.text);
+	        this.setState({
+	            friends: this.state.friends.concat([this.state.text]),
+	            text: ""
+	        });
+	    },
+	    render: function render() {
+	        return React.createElement(
+	            "div",
+	            { className: "ui input" },
+	            React.createElement("input", { type: "text", value: this.state.text, onChange: this.updateInput, placeholder: "Enter friend's name" }),
+	            React.createElement(
+	                "button",
+	                { onClick: this.addNewFriend },
+	                "Update list of friends"
+	            ),
+	            React.createElement(Showlist, { friends: this.state.friends })
+	        );
+	    }
+	});
+
+	module.exports = AddFriends;
+
+/***/ },
+/* 244 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	/**
+	 * Created by Sa on 6/12/2016.
+	 */
+	var React = __webpack_require__(2);
+
+	var Showlist = React.createClass({
+	    displayName: "Showlist",
+
+	    render: function render() {
+	        var listOfFriends = this.props.friends.map(function (f) {
+	            return React.createElement(
+	                "li",
+	                null,
+	                f
+	            );
+	        });
+	        return React.createElement(
+	            "div",
+	            null,
+	            React.createElement(
+	                "ul",
+	                null,
+	                listOfFriends
+	            )
+	        );
+	    }
+	});
+
+	module.exports = Showlist;
+
+/***/ },
+/* 245 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -26370,16 +27366,36 @@
 	var React = __webpack_require__(2);
 	var Router = __webpack_require__(170);
 	var Link = Router.Link;
+	var AppActions = __webpack_require__(233);
+	var AppStore = __webpack_require__(240);
 
 	var DisplayUser = React.createClass({
 	    displayName: "DisplayUser",
 
+	    getInitialState: function getInitialState() {
+	        return {
+	            profile: []
+	        };
+	    },
+	    componentDidMount: function componentDidMount() {
+	        AppStore.addChangeListener(this._onChange);
+	    },
+	    componentWillUnmount: function componentWillUnmount() {
+	        AppStore.removeChangeListener(this._onChange);
+	    },
 	    render: function render() {
 	        return React.createElement(
 	            "div",
 	            null,
-	            "..."
+	            "Displaying the profile of ",
+	            this.props.params.username,
+	            this.state.profile[this.props.params.username]
 	        );
+	    },
+	    _onChange: function _onChange() {
+	        this.setState({
+	            profile: AppStore.getProfiles(this.props.params.username)
+	        });
 	    }
 	});
 
