@@ -13,19 +13,19 @@ var CreateUser = React.createClass({
     getInitialState: function() {
         return {
             pic: "",
-            textAge: "",
+            age: "",
             friends: []
         }
     },
     updateInput: function (e) {
         this.setState({
-            textAge: e.target.value
-        })
+            age: e.target.value
+        });
     },
     handlePic: function(e) {
         this.setState({
-            pic: e.target.value
-        })
+            pic: e.currentTarget.value
+        });
     },
     addNew: function(friend) {
       this.setState({
@@ -38,7 +38,7 @@ var CreateUser = React.createClass({
     },
     componentWillUnmount: function () {
         var user = {};
-        user["age"] = this.state.textAge;
+        user["age"] = this.state.age;
         user["pic"] = this.state.pic;
         user["friends"] = this.state.friends;
 
@@ -47,7 +47,7 @@ var CreateUser = React.createClass({
         AppActions.addProfile(obj);
         this.setState({
             pic: "",
-            textAge: "",
+            age: "",
             friends: []
         });
 
@@ -55,23 +55,25 @@ var CreateUser = React.createClass({
     render: function () {
         return(
             <div className="ui secondary teal fluid segment">
-                <label>Include Age</label>
-                <div className="ui right labeled input">
-                    <input type="number" value={this.state.textAge} onChange={this.updateInput} placeholder="Enter age" />
+                <h4>Include Age</h4>
+                <div className="ui input">
+                    <input type="number" value={this.state.age} onChange={this.updateInput} placeholder="Enter age" />
                 </div>
                 <div className="ui horizontal divider"></div>
-                <div class="inline fields">
-                    <label>Dogs vs Cats! Take your pick</label>
-                    <div class="field">
-                        <div class="ui radio checkbox">
-                            <input type="radio" name="pic" onChange={this.updateInput} value={this.state.pic}/>
+                <div className="ui form">
+                    <div className="grouped fields">
+                        <label>Dogs vs Cats! Take your pick</label>
+                        <div className="field">
+                            <div className="ui radio checkbox">
+                                <input type="radio" name="pic" checked={this.state.pic === "Cats"} onChange={this.handlePic} value="Cats"/>
                                 <label>Cats</label>
+                            </div>
                         </div>
-                    </div>
-                    <div class="field">
-                        <div class="ui radio checkbox">
-                            <input type="radio" name="pic" onChange={this.updateInput} value={this.state.pic}/>
+                        <div className="field">
+                            <div className="ui radio checkbox">
+                                <input type="radio" name="pic" checked={this.state.pic === "Dogs"} onChange={this.handlePic} value="Dogs"/>
                                 <label>Dogs</label>
+                            </div>
                         </div>
                     </div>
                 </div>

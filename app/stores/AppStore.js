@@ -19,10 +19,12 @@ var addProfile = function (item) {
     }
     //if there is already a user with that username, append new user to the list of associated profiles
     if (_profiles.get(key)){
-        _profiles[key].concat([item[key]]);
+        _profiles.get(key).concat([item[key]]);
     } else {
         _profiles.set(key, [item[key]]);
     }
+
+    console.log(_profiles.get(key));
 }
 
 //Merge the store with Node's Event Emitter

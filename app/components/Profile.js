@@ -14,11 +14,12 @@ function getAppState() {
 }
 var NotFound = React.createClass({
     render: function() {
+        var username = this.props.params.username;
         return(
             <div className="ui secondary teal fluid segment">
-                <h3>User {this.props.params.username} Not Found</h3>
-                <Link to={`New-user/${this.props.params.username}`} className="primary ui floating link button">
-                    <i className="icon user"></i>Add User?
+                <h3>User {username} Not Found</h3>
+                <Link to={`New-user/${username}`} className="primary ui floating link button">
+                    <i className="icon user"></i>Create new user {username}
                 </Link>
             </div>
         )

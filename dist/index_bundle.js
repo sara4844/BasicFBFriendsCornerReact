@@ -26287,6 +26287,7 @@
 	    displayName: "NotFound",
 
 	    render: function render() {
+	        var username = this.props.params.username;
 	        return React.createElement(
 	            "div",
 	            { className: "ui secondary teal fluid segment" },
@@ -26294,14 +26295,15 @@
 	                "h3",
 	                null,
 	                "User ",
-	                this.props.params.username,
+	                username,
 	                " Not Found"
 	            ),
 	            React.createElement(
 	                Link,
-	                { to: "New-user/" + this.props.params.username, className: "primary ui floating link button" },
+	                { to: "New-user/" + username, className: "primary ui floating link button" },
 	                React.createElement("i", { className: "icon user" }),
-	                "Add User?"
+	                "Create new user ",
+	                username
 	            )
 	        );
 	    },
@@ -26817,10 +26819,12 @@
 	    }
 	    //if there is already a user with that username, append new user to the list of associated profiles
 	    if (_profiles.get(key)) {
-	        _profiles[key].concat([item[key]]);
+	        _profiles.get(key).concat([item[key]]);
 	    } else {
 	        _profiles.set(key, [item[key]]);
 	    }
+
+	    console.log(_profiles.get(key));
 	};
 
 	//Merge the store with Node's Event Emitter
@@ -27165,18 +27169,18 @@
 	    getInitialState: function getInitialState() {
 	        return {
 	            pic: "",
-	            textAge: "",
+	            age: "",
 	            friends: []
 	        };
 	    },
 	    updateInput: function updateInput(e) {
 	        this.setState({
-	            textAge: e.target.value
+	            age: e.target.value
 	        });
 	    },
 	    handlePic: function handlePic(e) {
 	        this.setState({
-	            pic: e.target.value
+	            pic: e.currentTarget.value
 	        });
 	    },
 	    addNew: function addNew(friend) {
@@ -27187,7 +27191,7 @@
 	    sendData: function sendData() {},
 	    componentWillUnmount: function componentWillUnmount() {
 	        var user = {};
-	        user["age"] = this.state.textAge;
+	        user["age"] = this.state.age;
 	        user["pic"] = this.state.pic;
 	        user["friends"] = this.state.friends;
 
@@ -27196,7 +27200,7 @@
 	        AppActions.addProfile(obj);
 	        this.setState({
 	            pic: "",
-	            textAge: "",
+	            age: "",
 	            friends: []
 	        });
 	    },
@@ -27205,49 +27209,53 @@
 	            "div",
 	            { className: "ui secondary teal fluid segment" },
 	            React.createElement(
-	                "label",
+	                "h4",
 	                null,
 	                "Include Age"
 	            ),
 	            React.createElement(
 	                "div",
-	                { className: "ui right labeled input" },
-	                React.createElement("input", { type: "number", value: this.state.textAge, onChange: this.updateInput, placeholder: "Enter age" })
+	                { className: "ui input" },
+	                React.createElement("input", { type: "number", value: this.state.age, onChange: this.updateInput, placeholder: "Enter age" })
 	            ),
 	            React.createElement("div", { className: "ui horizontal divider" }),
 	            React.createElement(
 	                "div",
-	                { "class": "inline fields" },
-	                React.createElement(
-	                    "label",
-	                    null,
-	                    "Dogs vs Cats! Take your pick"
-	                ),
+	                { className: "ui form" },
 	                React.createElement(
 	                    "div",
-	                    { "class": "field" },
+	                    { className: "grouped fields" },
+	                    React.createElement(
+	                        "label",
+	                        null,
+	                        "Dogs vs Cats! Take your pick"
+	                    ),
 	                    React.createElement(
 	                        "div",
-	                        { "class": "ui radio checkbox" },
-	                        React.createElement("input", { type: "radio", name: "pic", onChange: this.updateInput, value: this.state.pic }),
+	                        { className: "field" },
 	                        React.createElement(
-	                            "label",
-	                            null,
-	                            "Cats"
+	                            "div",
+	                            { className: "ui radio checkbox" },
+	                            React.createElement("input", { type: "radio", name: "pic", checked: this.state.pic === "Cats", onChange: this.handlePic, value: "Cats" }),
+	                            React.createElement(
+	                                "label",
+	                                null,
+	                                "Cats"
+	                            )
 	                        )
-	                    )
-	                ),
-	                React.createElement(
-	                    "div",
-	                    { "class": "field" },
+	                    ),
 	                    React.createElement(
 	                        "div",
-	                        { "class": "ui radio checkbox" },
-	                        React.createElement("input", { type: "radio", name: "pic", onChange: this.updateInput, value: this.state.pic }),
+	                        { className: "field" },
 	                        React.createElement(
-	                            "label",
-	                            null,
-	                            "Dogs"
+	                            "div",
+	                            { className: "ui radio checkbox" },
+	                            React.createElement("input", { type: "radio", name: "pic", checked: this.state.pic === "Dogs", onChange: this.handlePic, value: "Dogs" }),
+	                            React.createElement(
+	                                "label",
+	                                null,
+	                                "Dogs"
+	                            )
 	                        )
 	                    )
 	                )
@@ -27304,12 +27312,16 @@
 	    render: function render() {
 	        return React.createElement(
 	            "div",
-	            { className: "ui input" },
-	            React.createElement("input", { type: "text", value: this.state.text, onChange: this.updateInput, placeholder: "Enter friend's name" }),
+	            null,
 	            React.createElement(
-	                "button",
-	                { onClick: this.addNewFriend },
-	                "Update list of friends"
+	                "div",
+	                { className: "ui input" },
+	                React.createElement("input", { type: "text", value: this.state.text, onChange: this.updateInput, placeholder: "Enter friend's name" }),
+	                React.createElement(
+	                    "button",
+	                    { onClick: this.addNewFriend },
+	                    "Update list of friends"
+	                )
 	            ),
 	            React.createElement(Showlist, { friends: this.state.friends })
 	        );
@@ -27367,15 +27379,19 @@
 	var Router = __webpack_require__(170);
 	var Link = Router.Link;
 	var AppActions = __webpack_require__(233);
+	var ShowList = __webpack_require__(244);
 	var AppStore = __webpack_require__(240);
 
 	var DisplayUser = React.createClass({
 	    displayName: "DisplayUser",
 
-	    getInitialState: function getInitialState() {
+	    getAppState: function getAppState() {
 	        return {
-	            profile: []
+	            profile: AppStore.getProfiles(this.props.params.username)
 	        };
+	    },
+	    getInitialState: function getInitialState() {
+	        return this.getAppState();
 	    },
 	    componentDidMount: function componentDidMount() {
 	        AppStore.addChangeListener(this._onChange);
@@ -27384,18 +27400,41 @@
 	        AppStore.removeChangeListener(this._onChange);
 	    },
 	    render: function render() {
+	        var username = this.props.params.username;
 	        return React.createElement(
 	            "div",
 	            null,
-	            "Displaying the profile of ",
-	            this.props.params.username,
-	            this.state.profile[this.props.params.username]
+	            React.createElement(
+	                "h2",
+	                null,
+	                "Displaying the profile of ",
+	                username
+	            ),
+	            React.createElement(
+	                "h4",
+	                null,
+	                "Age: ",
+	                this.state.profile[0].age,
+	                " "
+	            ),
+	            React.createElement(
+	                "h4",
+	                null,
+	                "Pic: ",
+	                this.state.profile[0].pic,
+	                " "
+	            ),
+	            React.createElement(
+	                "h4",
+	                null,
+	                username,
+	                "'s friends are"
+	            ),
+	            React.createElement(ShowList, { friends: this.state.profile[0].friends })
 	        );
 	    },
 	    _onChange: function _onChange() {
-	        this.setState({
-	            profile: AppStore.getProfiles(this.props.params.username)
-	        });
+	        this.setState(this.getAppState());
 	    }
 	});
 
