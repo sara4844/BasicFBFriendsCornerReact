@@ -3,7 +3,12 @@ This project is still in progress. It is built in order to learn ReactJS and how
 
 A basic yellow book app which keeps information about users and their friends
 
-BasicFBFriendsCornerReact directory
+#Semantic-ui api
+This ui framework is used for the underlying style. Requires Gulp.
+
+<b>npm install semantic-ui</b> to include as dependency.
+
+#app directory
 
 --app
 
