@@ -18,7 +18,7 @@ var routes = (
         <Route path="/" component={Main}>
             <Route name="Profile" path="Profile/:username" component={ProfileShow}/>
             <Route name="CreateUser" path="New-user/:username" component={CreateUser}/>
-            <Route name="DisplayUser" path="Display/:username" component={DisplayUser} />
+            <Route name="DisplayUser" path="Display/:username/:uid" component={DisplayUser} />
         </Route>
     </Router>
 );

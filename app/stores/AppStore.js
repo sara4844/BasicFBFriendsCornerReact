@@ -7,13 +7,13 @@ var EventEmitter = require("events").EventEmitter;
 var assign = require("object-assign");
 
 //Internal object of profiles
-// {usernameK => [obj1, obj2, obj3, ...],
+// {usernameK => [{obj1}, obj2, obj3, ...],
 //  usernameL => [obj1, obj2, ...],
 //  ...}
 var _profiles = new Map();
 var addProfile = function (item) {
     var key = "";
-    //lookup the username in item. Item will always have only one key
+    //lookup the username in item. Item will always have a key and an obj
     for (var i in item) {
         key = i;
     }

@@ -11,7 +11,7 @@ var Showlist = React.createClass({
         return (
             <div>
                 <ul>
-                    {listOfFriends}
+                    {this.props.friends == null? null : listOfFriends}
                 </ul>
             </div>
         )

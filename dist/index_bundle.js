@@ -20385,8 +20385,8 @@
 
 	var Main = __webpack_require__(231);
 	var ProfileShow = __webpack_require__(232);
-	var CreateUser = __webpack_require__(242);
-	var DisplayUser = __webpack_require__(245);
+	var CreateUser = __webpack_require__(243);
+	var DisplayUser = __webpack_require__(246);
 	var routes = React.createElement(
 	    Router,
 	    { history: hashHistory },
@@ -20395,7 +20395,7 @@
 	        { path: "/", component: Main },
 	        React.createElement(Route, { name: "Profile", path: "Profile/:username", component: ProfileShow }),
 	        React.createElement(Route, { name: "CreateUser", path: "New-user/:username", component: CreateUser }),
-	        React.createElement(Route, { name: "DisplayUser", path: "Display/:username", component: DisplayUser })
+	        React.createElement(Route, { name: "DisplayUser", path: "Display/:username/:uid", component: DisplayUser })
 	    )
 	);
 	module.exports = routes;
@@ -26279,25 +26279,39 @@
 	var Link = Router.Link;
 	var AppActions = __webpack_require__(233);
 	var AppStore = __webpack_require__(240);
+	var DisplayMin = __webpack_require__(242);
 
-	function getAppState() {
-	    return {};
-	}
 	var NotFound = React.createClass({
 	    displayName: "NotFound",
 
+	    getAppState: function getAppState() {
+	        return {
+	            profile: AppStore.getProfiles(this.props.params.username)
+	        };
+	    },
+	    getInitialState: function getInitialState() {
+	        return this.getAppState();
+	    },
+	    componentDidMount: function componentDidMount() {
+	        //AppStore.addChangeListener(this._onChange);
+	    },
+	    componentWillUnmount: function componentWillUnmount() {
+	        //AppStore.removeChangeListener(this._onChange);
+	        this.setState({
+	            profile: []
+	        });
+	    },
+	    displayUsers: function displayUsers(f) {
+	        var name = this.props.params.username;
+	        return React.createElement(DisplayMin, { user: f, username: name });
+	    },
 	    render: function render() {
 	        var username = this.props.params.username;
+
 	        return React.createElement(
 	            "div",
-	            { className: "ui secondary teal fluid segment" },
-	            React.createElement(
-	                "h3",
-	                null,
-	                "User ",
-	                username,
-	                " Not Found"
-	            ),
+	            null,
+	            this.state.profile == null ? React.createElement(NoFriendsToShow, { user: username }) : this.state.profile.map(this.displayUsers),
 	            React.createElement(
 	                Link,
 	                { to: "New-user/" + username, className: "primary ui floating link button" },
@@ -26308,7 +26322,7 @@
 	        );
 	    },
 	    _onChange: function _onChange() {
-	        this.setState(getAppState());
+	        this.setState(this.getAppState());
 	    }
 	});
 
@@ -26318,12 +26332,17 @@
 	    render: function render() {
 	        return React.createElement(
 	            "div",
-	            null,
+	            { className: "ui secondary teal fluid segment" },
+	            React.createElement(
+	                "h3",
+	                null,
+	                "User Not Found"
+	            ),
 	            React.createElement(
 	                "h2",
 	                null,
-	                "No friends to show yet for ",
-	                this.props.params.username
+	                "No info to show yet for ",
+	                this.props.user
 	            )
 	        );
 	    }
@@ -26807,13 +26826,13 @@
 	var assign = __webpack_require__(238);
 
 	//Internal object of profiles
-	// {usernameK => [obj1, obj2, obj3, ...],
+	// {usernameK => [{obj1}, obj2, obj3, ...],
 	//  usernameL => [obj1, obj2, ...],
 	//  ...}
 	var _profiles = new Map();
 	var addProfile = function addProfile(item) {
 	    var key = "";
-	    //lookup the username in item. Item will always have only one key
+	    //lookup the username in item. Item will always have a key and an obj
 	    for (var i in item) {
 	        key = i;
 	    }
@@ -27153,6 +27172,95 @@
 	"use strict";
 
 	/**
+	 * Created by Sa on 6/24/2016.
+	 */
+	var React = __webpack_require__(2);
+
+	var DisplayMin = React.createClass({
+	    displayName: "DisplayMin",
+
+	    getInitialState: function getInitialState() {
+	        return {
+	            picLink: ""
+	        };
+	    },
+	    componentWillMount: function componentWillMount() {
+	        var dog = "http://goodbyemypetangel.com/wp-content/themes/heartvet/images/bottom-dog-img.png";
+	        var cat = "http://thecatapi.com/api/images/get?format=src&type=gif";
+
+	        var link = this.props.user.pic == "Cats" ? cat : dog;
+	        this.setState({
+	            picLink: link
+	        });
+	    },
+	    render: function render() {
+	        var username = this.props.username;
+	        return React.createElement(
+	            "div",
+	            null,
+	            React.createElement("div", { className: "ui horizontal divider" }),
+	            React.createElement(
+	                "div",
+	                { className: "ui card " },
+	                React.createElement(
+	                    "div",
+	                    { className: "content" },
+	                    React.createElement("img", { className: "right floated mini ui image", src: this.state.picLink }),
+	                    React.createElement(
+	                        "div",
+	                        { className: "content" },
+	                        React.createElement(
+	                            "div",
+	                            { className: "ui big header" },
+	                            username
+	                        )
+	                    ),
+	                    React.createElement(
+	                        "div",
+	                        { className: "content" },
+	                        React.createElement(
+	                            "div",
+	                            { className: "large meta" },
+	                            "Age: ",
+	                            this.props.user.age
+	                        )
+	                    ),
+	                    React.createElement(
+	                        "div",
+	                        { className: "content" },
+	                        React.createElement(
+	                            "div",
+	                            { className: "large meta" },
+	                            "Number of friends: ",
+	                            this.props.user.friends.length
+	                        )
+	                    ),
+	                    React.createElement("div", { className: "description" })
+	                ),
+	                React.createElement(
+	                    "div",
+	                    { className: "extra content" },
+	                    React.createElement(
+	                        "div",
+	                        { className: "ui button" },
+	                        "Display Profile"
+	                    )
+	                )
+	            ),
+	            React.createElement("div", { className: "ui horizontal divider" })
+	        );
+	    }
+	});
+
+	module.exports = DisplayMin;
+
+/***/ },
+/* 243 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	/**
 	 * Created by Sa on 6/9/2016.
 	 */
 	var React = __webpack_require__(2);
@@ -27161,13 +27269,14 @@
 
 	var AppActions = __webpack_require__(233);
 	var AppStore = __webpack_require__(240);
-	var AddFriends = __webpack_require__(243);
+	var AddFriends = __webpack_require__(244);
 
 	var CreateUser = React.createClass({
 	    displayName: "CreateUser",
 
 	    getInitialState: function getInitialState() {
 	        return {
+	            id: "",
 	            pic: "",
 	            age: "",
 	            friends: []
@@ -27188,9 +27297,25 @@
 	            friends: this.state.friends.concat([friend])
 	        });
 	    },
+	    componentDidMount: function componentDidMount() {
+	        this.setState({
+	            id: this.hashCode(this.props.params.username)
+	        });
+	    },
+	    hashCode: function hashCode(string) {
+	        var hash = 0,
+	            i = 0,
+	            len = string.length,
+	            chr;
+	        while (i < len) {
+	            hash = (hash << 5) - hash + string.charCodeAt(i++) << 0;
+	        }
+	        return hash;
+	    },
 	    sendData: function sendData() {},
 	    componentWillUnmount: function componentWillUnmount() {
 	        var user = {};
+	        user["id"] = this.state.id;
 	        user["age"] = this.state.age;
 	        user["pic"] = this.state.pic;
 	        user["friends"] = this.state.friends;
@@ -27265,8 +27390,9 @@
 	            React.createElement("div", { className: "ui horizontal divider" }),
 	            React.createElement(
 	                Link,
-	                { to: "Display/" + this.props.params.username,
+	                { to: "Display/" + this.props.params.username + "/" + this.state.id,
 	                    className: "ui center aligned blue floating link button" },
+	                this.sendData(),
 	                React.createElement("i", { className: "add user icon" }),
 	                "Create User"
 	            )
@@ -27277,7 +27403,7 @@
 	module.exports = CreateUser;
 
 /***/ },
-/* 243 */
+/* 244 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -27286,7 +27412,7 @@
 	 * Created by Sa on 6/11/2016.
 	 */
 	var React = __webpack_require__(2);
-	var Showlist = __webpack_require__(244);
+	var Showlist = __webpack_require__(245);
 
 	var AddFriends = React.createClass({
 	    displayName: "AddFriends",
@@ -27331,7 +27457,7 @@
 	module.exports = AddFriends;
 
 /***/ },
-/* 244 */
+/* 245 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -27358,7 +27484,7 @@
 	            React.createElement(
 	                "ul",
 	                null,
-	                listOfFriends
+	                this.props.friends == null ? null : listOfFriends
 	            )
 	        );
 	    }
@@ -27367,7 +27493,7 @@
 	module.exports = Showlist;
 
 /***/ },
-/* 245 */
+/* 246 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -27379,62 +27505,75 @@
 	var Router = __webpack_require__(170);
 	var Link = Router.Link;
 	var AppActions = __webpack_require__(233);
-	var ShowList = __webpack_require__(244);
+	var ShowList = __webpack_require__(245);
 	var AppStore = __webpack_require__(240);
 
 	var DisplayUser = React.createClass({
 	    displayName: "DisplayUser",
 
-	    getAppState: function getAppState() {
+
+	    getInitialState: function getInitialState() {
 	        return {
-	            profile: AppStore.getProfiles(this.props.params.username)
+	            userList: AppStore.getProfiles(this.props.params.username),
+	            profile: {}
 	        };
 	    },
-	    getInitialState: function getInitialState() {
-	        return this.getAppState();
-	    },
-	    componentDidMount: function componentDidMount() {
-	        AppStore.addChangeListener(this._onChange);
+	    componentWillMount: function componentWillMount() {
+	        var list = this.state.userList;
+	        var currProfile = null;
+	        for (var i = 0; i < list.length; i++) {
+	            if (list[i].id == this.props.params.uid) {
+	                currProfile = list[i];
+	            }
+	        }
+	        this.setState({
+	            profile: currProfile
+	        });
+	        console.log(currProfile);
 	    },
 	    componentWillUnmount: function componentWillUnmount() {
-	        AppStore.removeChangeListener(this._onChange);
+	        this.setState({
+	            userList: [],
+	            profile: {}
+	        });
 	    },
 	    render: function render() {
 	        var username = this.props.params.username;
 	        return React.createElement(
 	            "div",
-	            null,
+	            { className: "ui secondary teal fluid segment" },
 	            React.createElement(
-	                "h2",
-	                null,
-	                "Displaying the profile of ",
-	                username
-	            ),
-	            React.createElement(
-	                "h4",
-	                null,
-	                "Age: ",
-	                this.state.profile[0].age,
-	                " "
-	            ),
-	            React.createElement(
-	                "h4",
-	                null,
-	                "Pic: ",
-	                this.state.profile[0].pic,
-	                " "
-	            ),
-	            React.createElement(
-	                "h4",
-	                null,
-	                username,
-	                "'s friends are"
-	            ),
-	            React.createElement(ShowList, { friends: this.state.profile[0].friends })
+	                "div",
+	                { className: "ui container" },
+	                React.createElement(
+	                    "h2",
+	                    null,
+	                    "Displaying the profile of ",
+	                    username
+	                ),
+	                React.createElement(
+	                    "h4",
+	                    null,
+	                    "Age: ",
+	                    this.state.profile.age,
+	                    " "
+	                ),
+	                React.createElement(
+	                    "h4",
+	                    null,
+	                    "Pic: ",
+	                    this.state.profile.pic,
+	                    " "
+	                ),
+	                React.createElement(
+	                    "h4",
+	                    null,
+	                    username,
+	                    "'s friends are"
+	                ),
+	                React.createElement(ShowList, { friends: this.state.profile.friends })
+	            )
 	        );
-	    },
-	    _onChange: function _onChange() {
-	        this.setState(this.getAppState());
 	    }
 	});
 

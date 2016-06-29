@@ -9,33 +9,46 @@ var ShowList = require("./Showlist");
 var AppStore = require("../stores/AppStore");
 
 var DisplayUser = React.createClass({
-    getAppState: function () {
-        return {
-            profile: AppStore.getProfiles(this.props.params.username)
-        };
-    },
+
     getInitialState: function () {
-        return this.getAppState();
+        return {
+            userList: AppStore.getProfiles(this.props.params.username),
+            profile: {}
+        }
     },
-    componentDidMount: function(){
-        AppStore.addChangeListener(this._onChange);
+    componentWillMount: function(){
+        var list = this.state.userList;
+        var currProfile = null;
+        for (var i = 0; i < list.length; i++) {
+            if (list[i].id == this.props.params.uid) {
+                currProfile = list[i];
+            }
+        }
+        this.setState({
+            profile: currProfile
+        })
+        console.log(currProfile);
     },
     componentWillUnmount: function(){
-        AppStore.removeChangeListener(this._onChange);
+        this.setState({
+            userList: [],
+            profile: {}
+        })
     },
     render: function () {
         var username = this.props.params.username;
         return (
-            <div>
+            <div className="ui secondary teal fluid segment">
+                <div className="ui container">
                 <h2>Displaying the profile of {username}</h2>
-                <h4>Age: {this.state.profile[0].age} </h4>
-                <h4>Pic: {this.state.profile[0].pic} </h4>
-                <h4>{username}'s friends are</h4><ShowList friends={this.state.profile[0].friends} />
+                <h4>Age: {this.state.profile.age} </h4>
+                <h4>Pic: {this.state.profile.pic} </h4>
+                <h4>{username}'s friends are</h4>
+                <ShowList friends={this.state.profile.friends} />
+
+            </div>
             </div>
         )
-    },
-    _onChange: function() {
-        this.setState(this.getAppState());
     }
 });
 

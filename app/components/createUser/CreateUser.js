@@ -12,6 +12,7 @@ var AddFriends = require("./AddFriends");
 var CreateUser = React.createClass({
     getInitialState: function() {
         return {
+            id: "",
             pic: "",
             age: "",
             friends: []
@@ -33,11 +34,26 @@ var CreateUser = React.createClass({
       });
 
     },
-    sendData: function() {
+    componentDidMount: function() {
+        this.setState({
+            id: this.hashCode(this.props.params.username)
+        })
+    },
+    hashCode: function(string) {
+            var hash = 0, i = 0, len = string.length, chr;
+            while ( i < len ) {
+                hash  = ((hash << 5) - hash + string.charCodeAt(i++)) << 0;
+            }
+            return hash;
+        
+    },
+    sendData: function () {
+
 
     },
     componentWillUnmount: function () {
         var user = {};
+        user["id"] = this.state.id;
         user["age"] = this.state.age;
         user["pic"] = this.state.pic;
         user["friends"] = this.state.friends;
@@ -81,8 +97,9 @@ var CreateUser = React.createClass({
                 <AddFriends add={this.addNew} />
 
                 <div className="ui horizontal divider"></div>
-                <Link to={`Display/${this.props.params.username}`}  
+                <Link to={`Display/${this.props.params.username}/${this.state.id}`}  
                       className="ui center aligned blue floating link button">
+                    {this.sendData()}
                     <i className="add user icon"></i>Create User
                 </Link>
             </div>
