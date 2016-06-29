@@ -1,2 +1,2 @@
 # BasicFBFriendsCornerReact
-Basic yellow page direcoty of friends. 
+Basic yellow page directory of friends. 
