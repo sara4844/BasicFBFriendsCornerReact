@@ -10,15 +10,15 @@ This ui framework is used for the underlying style. Requires Gulp.
 
 ##App directory walkthrough
 
-<b>--app
+<b>--app/
 
-----actions
+----actions/
 
 ------AppActions.js </b><i>flux paradigm component which takes in requests to send to the store. Currently only createUser sends requests</i>
 
-<b>----components
+<b>----components/
 
-------createUser </b><i>handles new user creation</i>
+------createUser/ </b><i>handles new user creation</i>
 
 <b>--------AddFriends.js</b> <i>handles user input of friends and stores it temporarily, to be sent in an object package later on</i>
 
@@ -32,19 +32,19 @@ This ui framework is used for the underlying style. Requires Gulp.
 
 <b>------UserIs.js </b><i>handles initial user lookup on first load</i>
 
-<b>----config
+<b>----config/
 
 ------routes.js 
 
-----constants
+----constants/
 
 ------AppConstants.js </b><i>flux paradigm file which stores action constants</i>
 
-<b>----dispatcher
+<b>----dispatcher/
 
 ------AppDispatcher.js </b><i>flux paradigm component which sends payload requests</i>
 
-<b>----stores
+<b>----stores/
 
 ------AppStores.js </b><i>flux paradigm component which stores the state of the app</i>
 
