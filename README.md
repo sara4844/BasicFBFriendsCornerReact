@@ -3,52 +3,52 @@ This project is still in progress. It is built in order to learn ReactJS and how
 
 A basic yellow book app which keeps information about users and their friends
 
-#Semantic-ui api
+##Semantic-ui api
 This ui framework is used for the underlying style. Requires Gulp.
 
 <b>npm install semantic-ui</b> to include as dependency.
 
-#app directory
+##App directory walkthrough
 
---app
+<b>--app
 
 ----actions
 
-------AppActions.js
+------AppActions.js </b><i>flux paradigm component which takes in requests to send to the store. Currently only createUser sends requests</i>
 
-----components
+<b>----components
 
-------createUser
+------createUser </b><i>handles new user creation</i>
 
---------AddFriends.js
+<b>--------AddFriends.js</b> <i>handles user input of friends and stores it temporarily, to be sent in an object package later on</i>
 
---------CreateUser.js
+<b>--------CreateUser.js </b><i>takes user input through a form and sends the input via appActions to the store</i>
 
---------Showlist.js
+<b>--------Showlist.js </b><i>will render any array as an unordered list</i>
 
-------DisplayUser.js
+<b>------DisplayUser.js </b><i>handles the view of a specific user's info. Upon lookup by username, this view will display the user's info if the user exists</i>
 
-------Profile.js
+<b>------Profile.js </b><i>handles all future user lookups</i>
 
-------UserIs.js
+<b>------UserIs.js </b><i>handles initial user lookup on first load</i>
 
-----config
+<b>----config
 
-------routes.js
+------routes.js 
 
 ----constants
 
-------AppConstants.js
+------AppConstants.js </b><i>flux paradigm file which stores action constants</i>
 
-----dispatcher
+<b>----dispatcher
 
-------AppDispatcher.js
+------AppDispatcher.js </b><i>flux paradigm component which sends payload requests</i>
 
-----stores
+<b>----stores
 
-------AppStores.js
+------AppStores.js </b><i>flux paradigm component which stores the state of the app</i>
 
-----index.html
+<b>----index.html
 
-----index.js
+----index.js</b>
 
