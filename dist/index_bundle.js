@@ -26843,6 +26843,7 @@
 	        _profiles.set(key, [item[key]]);
 	    }
 
+	    console.log("hello from store, this is the list of users with this username: ");
 	    console.log(_profiles.get(key));
 	};
 
@@ -27529,6 +27530,7 @@
 	        this.setState({
 	            profile: currProfile
 	        });
+	        console.log("Hello from Display User. Listing the attributes of this user: ");
 	        console.log(currProfile);
 	    },
 	    componentWillUnmount: function componentWillUnmount() {

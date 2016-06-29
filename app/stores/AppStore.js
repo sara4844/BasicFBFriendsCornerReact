@@ -24,6 +24,7 @@ var addProfile = function (item) {
         _profiles.set(key, [item[key]]);
     }
 
+    console.log("hello from store, this is the list of users with this username: ");
     console.log(_profiles.get(key));
 }
 

@@ -27,7 +27,8 @@ var DisplayUser = React.createClass({
         this.setState({
             profile: currProfile
         })
-        console.log(currProfile);
+        console.log("Hello from Display User. Listing the attributes of this user: ");
+        console.log (currProfile);
     },
     componentWillUnmount: function(){
         this.setState({
